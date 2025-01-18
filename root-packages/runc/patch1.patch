@@ -1,0 +1,113 @@
+diff --git a/libcontainer/cgroups/fs/cpuset.go b/libcontainer/cgroups/fs/cpuset.go
+index fe01ba98..4cac04cf 100644
+--- a/libcontainer/cgroups/fs/cpuset.go
++++ b/libcontainer/cgroups/fs/cpuset.go
+@@ -26,12 +26,12 @@ func (s *CpusetGroup) Apply(path string, r *configs.Resources, pid int) error {
+
+ func (s *CpusetGroup) Set(path string, r *configs.Resources) error {
+        if r.CpusetCpus != "" {
+-        if err := cgroups.WriteFile(path, "cpuset.cpus", r.CpusetCpus); err != nil {
++        if err := cgroups.WriteFile(path, "cpus", r.CpusetCpus); err != nil {
+                return err
+         }
+        }
+        if r.CpusetMems != "" {
+-        if err := cgroups.WriteFile(path, "cpuset.mems", r.CpusetMems); err != nil {
++        if err := cgroups.WriteFile(path, "mems", r.CpusetMems); err != nil {
+                return err
+         }
+        }
+@@ -83,7 +83,7 @@ func getCpusetStat(path string, file string) ([]uint16, error) {
+ func (s *CpusetGroup) GetStats(path string, stats *cgroups.Stats) error {
+        var err error
+
+-       stats.CPUSetStats.CPUs, err = getCpusetStat(path, "cpuset.cpus")
++       stats.CPUSetStats.CPUs, err = getCpusetStat(path, "cpus")
+        if err != nil && !errors.Is(err, os.ErrNotExist) {
+         return err
+        }
+@@ -93,7 +93,7 @@ func (s *CpusetGroup) GetStats(path string, stats *cgroups.Stats) error {
+         return err
+        }
+
+-       stats.CPUSetStats.Mems, err = getCpusetStat(path, "cpuset.mems")
++       stats.CPUSetStats.Mems, err = getCpusetStat(path, "mems")
+        if err != nil && !errors.Is(err, os.ErrNotExist) {
+         return err
+        }
+@@ -172,10 +172,10 @@ func (s *CpusetGroup) ApplyDir(dir string, r *configs.Resources, pid int) error
+ }
+
+ func getCpusetSubsystemSettings(parent string) (cpus, mems string, err error) {
+-       if cpus, err = cgroups.ReadFile(parent, "cpuset.cpus"); err != nil {
++       if cpus, err = cgroups.ReadFile(parent, "cpus"); err != nil {
+         return
+        }
+-       if mems, err = cgroups.ReadFile(parent, "cpuset.mems"); err != nil {
++       if mems, err = cgroups.ReadFile(parent, "mems"); err != nil {
+         return
+        }
+        return cpus, mems, nil
+@@ -208,7 +208,7 @@ func cpusetEnsureParent(current string) error {
+        return cpusetCopyIfNeeded(current, parent)
+ }
+
+-// cpusetCopyIfNeeded copies the cpuset.cpus and cpuset.mems from the parent
++// cpusetCopyIfNeeded copies the cpus and mems from the parent
+ // directory to the current directory if the file's contents are 0
+ func cpusetCopyIfNeeded(current, parent string) error {
+        currentCpus, currentMems, err := getCpusetSubsystemSettings(current)
+@@ -221,12 +221,12 @@ func cpusetCopyIfNeeded(current, parent string) error {
+        }
+
+        if isEmptyCpuset(currentCpus) {
+-        if err := cgroups.WriteFile(current, "cpuset.cpus", parentCpus); err != nil {
++        if err := cgroups.WriteFile(current, "cpus", parentCpus); err != nil {
+                return err
+         }
+        }
+        if isEmptyCpuset(currentMems) {
+-        if err := cgroups.WriteFile(current, "cpuset.mems", parentMems); err != nil {
++        if err := cgroups.WriteFile(current, "mems", parentMems); err != nil {
+                return err
+         }
+        }
+diff --git a/libcontainer/criu_linux.go b/libcontainer/criu_linux.go
+index 4c6ae714..06af6cf0 100644
+--- a/libcontainer/criu_linux.go
++++ b/libcontainer/criu_linux.go
+@@ -160,7 +160,7 @@ func (c *Container) handleCriuConfigurationFile(rpcOpts *criurpc.CriuOpts) {
+        } else {
+         // If the mentioned annotation has not been found, specify
+         // a default CRIU configuration file.
+-        rpcOpts.ConfigFile = proto.String("/etc/criu/runc.conf")
++        rpcOpts.ConfigFile = proto.String("@TERMUX_PREFIX@/etc/criu/runc.conf")
+        }
+ }
+
+diff --git a/list.go b/list.go
+index 615f6271..c4a4d262 100644
+--- a/list.go
++++ b/list.go
+@@ -46,7 +46,7 @@ var listCommand = cli.Command{
+        ArgsUsage: `
+
+ Where the given root is specified via the global option "--root"
+-(default: "/run/runc").
++(default: "@TERMUX_PREFIX@/run/runc").
+
+ EXAMPLE 1:
+ To list containers created via the default "--root":
+diff --git a/main.go b/main.go
+index cac34ce0..33419d71 100644
+--- a/main.go
++++ b/main.go
+@@ -73,7 +73,7 @@ func main() {
+        }
+        app.Version = strings.Join(v, "\n")
+
+-       root := "/run/runc"
++       root := "@TERMUX_PREFIX@/run/runc"
+        xdgDirUsed := false
+        xdgRuntimeDir := os.Getenv("XDG_RUNTIME_DIR")
+        if xdgRuntimeDir != "" && shouldHonorXDGRuntimeDir() {
