@@ -4,8 +4,8 @@ TERMUX_PKG_LICENSE="Apache-2.0"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="1.2.4"
 TERMUX_PKG_REVISION=1
-TERMUX_PKG_SRCURL=https://github.com/Pawel5sekund/runc/archive/refs/tags/v1.2.4-4.tar.gz
-TERMUX_PKG_SHA256=f5ef66b36b6c09518e01e93ce8c50df0c7af5572c9358883c13e68b958b12b0e
+TERMUX_PKG_SRCURL=https://github.com/Pawel5sekund/runc/archive/refs/tags/v1.2.5-5.tar.gz
+TERMUX_PKG_SHA256=68ae74cce3b03119205652470f397477258e3eaff505bef4a94f0a052b586f63
 TERMUX_PKG_AUTO_UPDATE=true
 TERMUX_PKG_BUILD_DEPENDS="libseccomp-static"
 
